@@ -33,16 +33,16 @@ public class FileEntity {
     @Column(nullable = false)
     private String originalFileName;
 
-    @Column(nullable = false, unique = true)
-    private String storedFileName;
-
     private String fileType;
 
     @Column(nullable = false)
     private Long fileSize;
 
-    @Column(nullable = false)
-    private String filePath;
+    @Column(nullable = false, unique = true)
+    private String cloudinaryPublicId;
+
+    @Column(nullable = false, length = 1000)
+    private String cloudinarySecureUrl;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "uploaded_by", nullable = false)

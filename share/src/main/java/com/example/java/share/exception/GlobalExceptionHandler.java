@@ -32,6 +32,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(CloudinaryStorageException.class)
+    public ResponseEntity<ErrorResponse> handleCloudinaryStorage(CloudinaryStorageException ex) {
+        return buildResponse(HttpStatus.BAD_GATEWAY, ex.getMessage(), null);
+    }
+
     @ExceptionHandler({UnauthorizedException.class, BadCredentialsException.class})
     public ResponseEntity<ErrorResponse> handleUnauthorized(RuntimeException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);

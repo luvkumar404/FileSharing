@@ -2,7 +2,7 @@
 
 A secure file sharing backend built with Spring Boot and Maven.
 
-This project supports user registration, JWT-based login, authenticated file upload, file download, listing a user's own files, deleting owned files, and sharing files through temporary public links. File metadata is stored in PostgreSQL, while the actual uploaded files are stored in a local `uploads/` folder.
+This project supports user registration, JWT-based login, authenticated file upload, file download URL generation, listing a user's own files, deleting owned files, and sharing files through temporary public links. File metadata is stored in PostgreSQL, while the actual uploaded files are stored in Cloudinary.
 
 ## Key Features
 
@@ -10,11 +10,11 @@ This project supports user registration, JWT-based login, authenticated file upl
 - Password hashing with BCrypt
 - JWT authentication
 - Protected file APIs
-- Upload files to local storage
+- Upload files to Cloudinary
 - Store file metadata in PostgreSQL
 - List files uploaded by the logged-in user
-- Download only owned private files
-- Delete only owned files
+- Return secure Cloudinary URLs for owned private files
+- Delete owned files from Cloudinary and PostgreSQL
 - Generate temporary public share links
 - Expire shared links after a configured time
 - Global exception handling
@@ -29,6 +29,7 @@ This project supports user registration, JWT-based login, authenticated file upl
 | Build Tool | Maven |
 | Web | Spring Web |
 | Security | Spring Security, JWT, BCrypt |
+| File Storage | Cloudinary |
 | Database | PostgreSQL |
 | Persistence | Spring Data JPA, Hibernate |
 | Utilities | Lombok |
@@ -41,12 +42,12 @@ The project follows a clean layered architecture:
 | Layer | Responsibility |
 | --- | --- |
 | `controller` | Handles HTTP requests and responses |
-| `service` | Contains business logic |
+| `service` | Contains business logic, including Cloudinary file storage |
 | `repository` | Communicates with the database |
 | `entity` | Defines database models |
 | `dto` | Defines request and response objects |
 | `security` | Handles JWT and authenticated user details |
-| `config` | Contains application and security configuration |
+| `config` | Contains application, security, and Cloudinary configuration |
 | `exception` | Handles application errors globally |
 
 ## Working Diagram
@@ -57,7 +58,7 @@ flowchart LR
     Auth --> JWT[JWT Token]
     JWT --> FileAPIs[Protected File APIs]
     FileAPIs --> PostgreSQL[(PostgreSQL Metadata)]
-    FileAPIs --> Uploads[Local Uploads Folder]
+    FileAPIs --> Cloudinary[Cloudinary Storage]
 ```
 
 ## API Endpoints
@@ -66,12 +67,12 @@ flowchart LR
 | --- | --- | --- | --- |
 | `POST` | `/api/auth/register` | Public | Register a new user |
 | `POST` | `/api/auth/login` | Public | Login and receive a JWT token |
-| `POST` | `/api/files/upload` | Protected | Upload a file |
+| `POST` | `/api/files/upload` | Protected | Upload a file to Cloudinary |
 | `GET` | `/api/files` | Protected | List logged-in user's files |
-| `GET` | `/api/files/{id}/download` | Protected | Download an owned file |
-| `DELETE` | `/api/files/{id}` | Protected | Delete an owned file |
+| `GET` | `/api/files/{id}/download` | Protected | Get the Cloudinary secure URL for an owned file |
+| `DELETE` | `/api/files/{id}` | Protected | Delete an owned file from Cloudinary and PostgreSQL |
 | `POST` | `/api/files/{id}/share` | Protected | Create a temporary public share link |
-| `GET` | `/api/share/{token}` | Public | Download a file using a valid share token |
+| `GET` | `/api/share/{token}` | Public | Get the Cloudinary secure URL using a valid share token |
 
 ## Database Entities
 
@@ -92,10 +93,10 @@ flowchart LR
 | --- | --- | --- |
 | `id` | `Long` | Primary key |
 | `originalFileName` | `String` | Original uploaded filename |
-| `storedFileName` | `String` | Unique stored filename |
 | `fileType` | `String` | MIME type |
 | `fileSize` | `Long` | File size in bytes |
-| `filePath` | `String` | Local file path |
+| `cloudinaryPublicId` | `String` | Cloudinary public ID |
+| `cloudinarySecureUrl` | `String` | Cloudinary secure file URL |
 | `uploadedBy` | `User` | Owner of the file |
 | `createdAt` | `LocalDateTime` | Upload time |
 
@@ -127,11 +128,15 @@ Create a database named:
 CREATE DATABASE file_sharing_db;
 ```
 
-### 3. Configure Application Properties
+### 3. Configure Cloudinary
 
-Update `src/main/resources/application.properties` with your PostgreSQL username, password, JWT secret, and upload folder path.
+Create a Cloudinary account and copy your cloud name, API key, and API secret from the Cloudinary dashboard.
 
-### 4. Run the Application
+### 4. Configure Application Properties
+
+Update `src/main/resources/application.properties` with your PostgreSQL username, password, JWT secret, and Cloudinary credentials.
+
+### 5. Run the Application
 
 On Windows:
 
@@ -168,7 +173,10 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
 app.jwt.secret=change-this-secret-key-to-at-least-32-characters
 app.jwt.expiration-ms=86400000
-app.upload.dir=uploads
+
+cloudinary.cloud-name=your-cloud-name
+cloudinary.api-key=your-api-key
+cloudinary.api-secret=your-api-secret
 
 spring.servlet.multipart.max-file-size=20MB
 spring.servlet.multipart.max-request-size=20MB
@@ -178,19 +186,19 @@ spring.servlet.multipart.max-request-size=20MB
 
 ```text
 src
-└── main
-    ├── java
-    │   └── com.example.java.share
-    │       ├── config
-    │       ├── controller
-    │       ├── dto
-    │       ├── entity
-    │       ├── exception
-    │       ├── repository
-    │       ├── security
-    │       └── service
-    └── resources
-        └── application.properties
+`-- main
+    |-- java
+    |   `-- com.example.java.share
+    |       |-- config
+    |       |-- controller
+    |       |-- dto
+    |       |-- entity
+    |       |-- exception
+    |       |-- repository
+    |       |-- security
+    |       `-- service
+    `-- resources
+        `-- application.properties
 ```
 
 ## Contribution Guidelines
