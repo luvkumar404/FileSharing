@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure File Sharing System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div>
+            <h1>Secure File Sharing System</h1>
+            <p>Upload, manage, and share files securely.</p>
+        </div>
+        <button id="logoutBtn" class="secondary-btn hidden">Logout</button>
+    </header>
+
+    <main class="page">
+        <section id="messageBox" class="message hidden"></section>
+
+        <section id="authSection" class="auth-grid">
+            <form id="registerForm" class="panel">
+                <h2>Create Account</h2>
+                <label for="registerName">Name</label>
+                <input id="registerName" type="text" placeholder="Your name" required>
+
+                <label for="registerEmail">Email</label>
+                <input id="registerEmail" type="email" placeholder="you@example.com" required>
+
+                <label for="registerPassword">Password</label>
+                <input id="registerPassword" type="password" placeholder="Minimum 6 characters" required minlength="6">
+
+                <button type="submit">Register</button>
+            </form>
+
+            <form id="loginForm" class="panel">
+                <h2>Login</h2>
+                <label for="loginEmail">Email</label>
+                <input id="loginEmail" type="email" placeholder="you@example.com" required>
+
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" type="password" placeholder="Your password" required>
+
+                <button type="submit">Login</button>
+            </form>
+        </section>
+
+        <section id="fileSection" class="hidden">
+            <div class="toolbar">
+                <div>
+                    <h2>My Files</h2>
+                    <p id="userLabel"></p>
+                </div>
+                <form id="uploadForm" class="upload-form">
+                    <input id="fileInput" type="file" required>
+                    <button type="submit">Upload</button>
+                </form>
+            </div>
+
+            <div id="filesList" class="files-list"></div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

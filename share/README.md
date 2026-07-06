@@ -1,14 +1,16 @@
 # Secure File Sharing System
 
-A secure file sharing backend built with Spring Boot and Maven.
+A secure file sharing system built with Spring Boot, Maven, and a plain HTML/CSS/JavaScript frontend.
 
-This project supports user registration, JWT-based login, authenticated file upload, file download URL generation, listing a user's own files, deleting owned files, and sharing files through temporary public links. File metadata is stored in PostgreSQL, while the actual uploaded files are stored in Cloudinary.
+This project supports user registration, JWT-based login, authenticated file upload, file download URL generation, listing a user's own files, deleting owned files, and sharing files through temporary public links. File metadata is stored in PostgreSQL, while the actual uploaded files are stored in Cloudinary. The frontend is served directly by Spring Boot from `src/main/resources/static`.
 
 ## Key Features
 
 - User registration and login
 - Password hashing with BCrypt
 - JWT authentication
+- Plain HTML, CSS, and JavaScript frontend
+- JWT storage in browser `localStorage`
 - Protected file APIs
 - Upload files to Cloudinary
 - Store file metadata in PostgreSQL
@@ -28,6 +30,7 @@ This project supports user registration, JWT-based login, authenticated file upl
 | Framework | Spring Boot 3 |
 | Build Tool | Maven |
 | Web | Spring Web |
+| Frontend | HTML, CSS, JavaScript |
 | Security | Spring Security, JWT, BCrypt |
 | File Storage | Cloudinary |
 | Database | PostgreSQL |
@@ -49,17 +52,49 @@ The project follows a clean layered architecture:
 | `security` | Handles JWT and authenticated user details |
 | `config` | Contains application, security, and Cloudinary configuration |
 | `exception` | Handles application errors globally |
+| `static` | Contains the frontend files served by Spring Boot |
 
 ## Working Diagram
 
 ```mermaid
 flowchart LR
     User[User] --> Auth[Auth APIs]
+    User --> Frontend[HTML CSS JavaScript Frontend]
+    Frontend --> Auth
     Auth --> JWT[JWT Token]
+    Frontend --> JWT
     JWT --> FileAPIs[Protected File APIs]
     FileAPIs --> PostgreSQL[(PostgreSQL Metadata)]
     FileAPIs --> Cloudinary[Cloudinary Storage]
 ```
+
+## Frontend
+
+The frontend is available at:
+
+```text
+http://localhost:8080
+```
+
+Frontend files:
+
+| File | Purpose |
+| --- | --- |
+| `src/main/resources/static/index.html` | Page structure and forms |
+| `src/main/resources/static/styles.css` | Responsive styling |
+| `src/main/resources/static/app.js` | API calls, JWT handling, and UI behavior |
+
+Frontend features:
+
+- Register and login forms
+- Stores JWT token in `localStorage`
+- Sends protected requests with `Authorization: Bearer <token>`
+- Uploads files using `FormData`
+- Lists logged-in user's files
+- Opens Cloudinary secure file URLs
+- Deletes owned files
+- Creates temporary share links
+- Logs out by clearing browser storage
 
 ## API Endpoints
 
@@ -150,11 +185,13 @@ On Linux/macOS:
 ./mvnw spring-boot:run
 ```
 
-The API will start at:
+The application will start at:
 
 ```text
 http://localhost:8080
 ```
+
+Open this URL in the browser to use the frontend.
 
 ## Environment Variables / application.properties Example
 
@@ -198,7 +235,11 @@ src
     |       |-- security
     |       `-- service
     `-- resources
-        `-- application.properties
+        |-- application.properties
+        `-- static
+            |-- index.html
+            |-- styles.css
+            `-- app.js
 ```
 
 ## Contribution Guidelines
